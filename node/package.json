@@ -62,7 +62,7 @@
     "@camera.ui/sdk": ">=1.2.15"
   },
   "devDependencies": {
-    "@camera.ui/sdk": "~1.2.35",
+    "@camera.ui/sdk": "~1.2.37",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/node": "26.5.1",
     "@types/sdp-transform": "^3.0.0",
