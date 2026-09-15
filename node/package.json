@@ -62,7 +62,7 @@
     "@camera.ui/sdk": ">=1.2.15"
   },
   "devDependencies": {
-    "@camera.ui/sdk": "~1.2.37",
+    "@camera.ui/sdk": "~1.2.38",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/node": "26.5.1",
     "@types/sdp-transform": "^3.0.0",
@@ -75,7 +75,7 @@
     "typescript": "5.9.3",
     "typescript-eslint": "^8.70.0",
     "updates": "^18.1.0",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.1"
   },
   "author": "seydx (https://github.com/cameraui/common)",
   "bugs": {
