@@ -56,7 +56,7 @@
     "pick-port": "^2.2.1",
     "rxjs": "^7.8.2",
     "sdp-transform": "^3.0.0",
-    "systeminformation": "^5.33.10"
+    "systeminformation": "^5.33.11"
   },
   "peerDependencies": {
     "@camera.ui/sdk": ">=1.2.15"
@@ -64,12 +64,12 @@
   "devDependencies": {
     "@camera.ui/sdk": "~1.2.38",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@types/node": "26.5.1",
+    "@types/node": "26.6.1",
     "@types/sdp-transform": "^3.0.0",
     "@typescript-eslint/parser": "^8.70.0",
     "eslint": "9.39.2",
     "globals": "^17.12.0",
-    "prettier": "^3.9.6",
+    "prettier": "^3.9.7",
     "rimraf": "^6.1.3",
     "tsyringe": "^4.10.0",
     "typescript": "5.9.3",
