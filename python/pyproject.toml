@@ -21,7 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
-dependencies = ["typing_extensions>=4.16.0", "camera-ui-sdk>=1.2.38"]
+dependencies = ["typing_extensions>=4.16.0", "camera-ui-sdk>=1.2.39"]
 
 [project.optional-dependencies]
 test = ["pytest>=9.1.1"]
