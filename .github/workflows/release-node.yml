@@ -46,4 +46,8 @@ jobs:
       - name: Publish to npm
         run: |
           npm install -g npm@11.18.0
-          cd node && npm publish --provenance --access public
+          VERSION="$(node -p "require('./node/package.json').version")"
+          DIST_TAG=latest
+          case "$VERSION" in *-*) DIST_TAG=beta ;; esac
+          echo "publishing $VERSION under the $DIST_TAG dist-tag"
+          cd node && npm publish --provenance --access public --tag "$DIST_TAG"

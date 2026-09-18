@@ -1,18 +1,32 @@
-import { bgDarkGray, bgGreen, bgMagenta, bgRed, bgYellow, blue, cyan, darkGray, green, magenta, red, yellow } from 'ansicolor';
 import { EventEmitter } from 'node:events';
-import { inspect } from 'util';
+import { inspect, styleText } from 'node:util';
 
 import type { ChildLogMessage, LogEntry, LogEventCallback, LoggerOptions, LogLevel, LogSource, LogTargetType } from './types.js';
 
 export type { ChildLogMessage, LogEntry, LogEventCallback, LoggerOptions, LogLevel, LogSource, LogTargetType, LogTransport } from './types.js';
 
+type Color = 'red' | 'yellow' | 'green' | 'magenta' | 'blue' | 'cyan' | 'gray' | 'bgRed' | 'bgYellow' | 'bgGreen' | 'bgMagenta' | 'bgGray';
+
+const ESCAPE = String.fromCharCode(27);
+
+// camera.ui logs from a background process, where styleText would drop the colors
+// because stdout is not a TTY. A message that carries its own codes (plugin and
+// ffmpeg output does) gets its resets turned back into the outer color, so the
+// rest of the line keeps it
+function paint(color: Color, text: string): string {
+  const [open, close] = inspect.colors[color];
+  const nested = text.replaceAll(`${ESCAPE}[${close}m`, `${ESCAPE}[${open}m`);
+
+  return styleText(color, nested, { validateStream: false });
+}
+
 export class Logger extends EventEmitter {
   private static readonly LEVEL_PREFIXES: Record<Exclude<LogLevel, 'raw'>, string> = {
-    error: bgRed(' ERROR '),
-    warn: bgYellow(' WARN '),
-    success: bgGreen(' SUCCESS '),
-    attention: bgMagenta(' ATTENTION '),
-    trace: bgDarkGray(' TRACE '),
+    error: paint('bgRed', ' ERROR '),
+    warn: paint('bgYellow', ' WARN '),
+    success: paint('bgGreen', ' SUCCESS '),
+    attention: paint('bgMagenta', ' ATTENTION '),
+    trace: paint('bgGray', ' TRACE '),
     debug: '',
     log: '',
   };
@@ -235,12 +249,12 @@ export class Logger extends EventEmitter {
 
     // Prefix
     if (!this.disablePrefix && entry.prefix) {
-      parts.push(blue(`[${entry.prefix}]`));
+      parts.push(paint('blue', `[${entry.prefix}]`));
     }
 
     // Suffix
     if (entry.suffix) {
-      parts.push(cyan(`[${entry.suffix}]`));
+      parts.push(paint('cyan', `[${entry.suffix}]`));
     }
 
     // Level prefix and colored message
@@ -263,15 +277,15 @@ export class Logger extends EventEmitter {
     switch (level) {
       case 'debug':
       case 'trace':
-        return darkGray(message);
+        return paint('gray', message);
       case 'warn':
-        return yellow(message);
+        return paint('yellow', message);
       case 'error':
-        return red(message);
+        return paint('red', message);
       case 'success':
-        return green(message);
+        return paint('green', message);
       case 'attention':
-        return magenta(message);
+        return paint('magenta', message);
       default:
         return message;
     }
@@ -349,12 +363,12 @@ export class Logger extends EventEmitter {
 
     // Prefix with color
     if (entry.prefix) {
-      parts.push(blue(`[${entry.prefix}]`));
+      parts.push(paint('blue', `[${entry.prefix}]`));
     }
 
     // Suffix with color
     if (entry.suffix) {
-      parts.push(cyan(`[${entry.suffix}]`));
+      parts.push(paint('cyan', `[${entry.suffix}]`));
     }
 
     // Level prefix with background color
@@ -368,19 +382,19 @@ export class Logger extends EventEmitter {
     switch (entry.level) {
       case 'debug':
       case 'trace':
-        coloredMessage = darkGray(entry.message);
+        coloredMessage = paint('gray', entry.message);
         break;
       case 'warn':
-        coloredMessage = yellow(entry.message);
+        coloredMessage = paint('yellow', entry.message);
         break;
       case 'error':
-        coloredMessage = red(entry.message);
+        coloredMessage = paint('red', entry.message);
         break;
       case 'success':
-        coloredMessage = green(entry.message);
+        coloredMessage = paint('green', entry.message);
         break;
       case 'attention':
-        coloredMessage = magenta(entry.message);
+        coloredMessage = paint('magenta', entry.message);
         break;
       default:
         coloredMessage = entry.message;

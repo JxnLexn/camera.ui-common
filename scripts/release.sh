@@ -21,6 +21,7 @@ Usage: scripts/release.sh <node|python> <version|major|minor|patch> [--yes] [--s
 
 Examples:
   scripts/release.sh node 1.0.2
+  scripts/release.sh node 1.0.3-beta.0   # published under the beta dist-tag
   scripts/release.sh python patch
 
 Options:
@@ -86,10 +87,24 @@ case "$SPEC" in
   *) NEW="$SPEC" ;;
 esac
 
-if ! echo "$NEW" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-  echo -e "${RED}Invalid version '$NEW' (expected X.Y.Z).${NC}"
+# npm takes a prerelease and publishes it under the beta dist-tag, PyPI versions
+# stay plain so the tag keeps matching pyproject.toml after PEP 440 normalization
+case "$PKG" in
+  node) VERSION_PATTERN='^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$' ;;
+  python) VERSION_PATTERN='^[0-9]+\.[0-9]+\.[0-9]+$' ;;
+esac
+
+if ! echo "$NEW" | grep -qE "$VERSION_PATTERN"; then
+  if [ "$PKG" = node ]; then
+    echo -e "${RED}Invalid version '$NEW' (expected X.Y.Z or X.Y.Z-beta.N).${NC}"
+  else
+    echo -e "${RED}Invalid version '$NEW' (expected X.Y.Z).${NC}"
+  fi
   exit 1
 fi
+
+DIST_TAG=latest
+case "$NEW" in *-*) DIST_TAG=beta ;; esac
 
 case "$PKG" in
   node) TAG="node-v$NEW" ;;
@@ -101,7 +116,11 @@ if git rev-parse "$TAG" >/dev/null 2>&1; then
   exit 1
 fi
 
-echo -e "${CYAN}Releasing $PKG: $cur -> $NEW (tag $TAG)${NC}"
+if [ "$PKG" = node ]; then
+  echo -e "${CYAN}Releasing $PKG: $cur -> $NEW (tag $TAG, npm dist-tag $DIST_TAG)${NC}"
+else
+  echo -e "${CYAN}Releasing $PKG: $cur -> $NEW (tag $TAG)${NC}"
+fi
 
 if [ "$SKIP_CHECKS" = false ]; then
   echo -e "${YELLOW}Running $PKG unit tests...${NC}"

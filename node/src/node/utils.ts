@@ -1,8 +1,9 @@
-import fixPath from '@seydx/fix-path';
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { homedir, platform as osPlatform } from 'node:os';
 import { basename, dirname, join, sep } from 'node:path';
+
+import { fixPath } from './fix-path.js';
 
 function isModuleRootDirectory(dir: string): boolean {
   const packageJsonPath = join(dir, 'package.json');
