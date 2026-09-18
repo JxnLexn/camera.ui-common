@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "sdp-transform": "^3.0.0",
-    "systeminformation": "^5.33.11"
+    "systeminformation": "^5.33.12"
   },
   "peerDependencies": {
     "@camera.ui/sdk": ">=1.2.15"
@@ -73,7 +73,7 @@
     "tsyringe": "^4.10.0",
     "typescript": "5.9.3",
     "typescript-eslint": "^8.70.0",
-    "updates": "^18.1.0",
+    "updates": "^18.1.1",
     "vitest": "^5.0.1"
   },
   "author": "seydx (https://github.com/cameraui/common)",
