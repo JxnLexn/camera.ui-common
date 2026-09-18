@@ -51,7 +51,6 @@
     "update": "updates -M npm,pypi,go,cargo,docker,make --update ./"
   },
   "dependencies": {
-    "rxjs": "^7.8.2",
     "sdp-transform": "^3.0.0",
     "systeminformation": "^5.33.11"
   },
