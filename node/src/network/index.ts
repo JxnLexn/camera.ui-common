@@ -12,51 +12,17 @@ export interface UsableNetworkAddress {
   isPrivate: boolean;
 }
 
-class IPRange {
-  private ranges = new Map<IPVersion, [bigint, bigint][]>();
+function blockList(entries: [string, number, IPVersion?][]): net.BlockList {
+  const list = new net.BlockList();
 
-  constructor(entries: [string, number, IPVersion?][]) {
-    entries.forEach(([ip, prefixLength, version = 'ipv4']) => this.addSubnet(ip, prefixLength, version));
+  for (const [ip, prefixLength, version = 'ipv4'] of entries) {
+    list.addSubnet(ip, prefixLength, version);
   }
 
-  private ipToBigInt(ip: string): bigint {
-    if (ip.includes(':')) {
-      return BigInt(
-        `0x${ip
-          .split(':')
-          .map((part) => part.padStart(4, '0'))
-          .join('')}`,
-      );
-    }
-    return BigInt(
-      `0x${ip
-        .split('.')
-        .map((octet) => parseInt(octet).toString(16).padStart(2, '0'))
-        .join('')}`,
-    );
-  }
-
-  private addSubnet(ip: string, prefixLength: number, version: IPVersion): void {
-    const subnet = this.ipToBigInt(ip);
-    const bits = version === 'ipv4' ? 32n : 128n;
-    const mask = (1n << (bits - BigInt(prefixLength))) - 1n;
-    const start = subnet & ~mask;
-    const end = start | mask;
-    if (!this.ranges.has(version)) {
-      this.ranges.set(version, []);
-    }
-    this.ranges.get(version)!.push([start, end]);
-  }
-
-  check(ip: string, version: IPVersion): boolean {
-    const ranges = this.ranges.get(version);
-    if (!ranges) return false;
-    const ipInt = this.ipToBigInt(ip);
-    return ranges.some(([start, end]) => ipInt >= start && ipInt <= end);
-  }
+  return list;
 }
 
-const unusableRanges = new IPRange([
+const unusableRanges = blockList([
   ['127.0.0.0', 8],
   ['169.254.0.0', 16],
   ['100.64.0.0', 10], // CG-NAT (also Tailscale's overlay range) — never routable from outside that overlay
@@ -66,7 +32,7 @@ const unusableRanges = new IPRange([
   ['fe80::', 10, 'ipv6'],
 ]);
 
-const privateRanges = new IPRange([
+const privateRanges = blockList([
   ['10.0.0.0', 8],
   ['172.16.0.0', 12],
   ['192.168.0.0', 16],
@@ -83,21 +49,27 @@ export function buildHttpsUrl(address: string, port: number): string {
   return `https://${hostPart}:${port}`;
 }
 
-export const isValidNetworkAddress = (ip: string): boolean => {
-  if (!ip) return false;
-  try {
-    const cleanedIp = extractPureIPAddress(ip);
-    const version: IPVersion = cleanedIp.includes(':') ? 'ipv6' : 'ipv4';
-    return !unusableRanges.check(cleanedIp, version);
-  } catch {
-    return false;
+function ipVersionOf(ip: string): IPVersion | undefined {
+  if (!ip) {
+    return undefined;
   }
+
+  const family = net.isIP(extractPureIPAddress(ip));
+  if (family === 4) {
+    return 'ipv4';
+  }
+
+  return family === 6 ? 'ipv6' : undefined;
+}
+
+export const isValidNetworkAddress = (ip: string): boolean => {
+  const version = ipVersionOf(ip);
+  return version ? !unusableRanges.check(extractPureIPAddress(ip), version) : false;
 };
 
 export const isInternalNetworkAddress = (ip: string): boolean => {
-  const cleanedIp = extractPureIPAddress(ip);
-  const version: IPVersion = cleanedIp.includes(':') ? 'ipv6' : 'ipv4';
-  return privateRanges.check(cleanedIp, version);
+  const version = ipVersionOf(ip);
+  return version ? privateRanges.check(extractPureIPAddress(ip), version) : false;
 };
 
 export function isLoopbackAddress(ip: string): boolean {
