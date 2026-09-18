@@ -1,6 +1,6 @@
 {
   "name": "@camera.ui/common",
-  "version": "0.0.58-beta.1",
+  "version": "0.0.58-beta.2",
   "description": "camera.ui utilities",
   "type": "module",
   "exports": {
